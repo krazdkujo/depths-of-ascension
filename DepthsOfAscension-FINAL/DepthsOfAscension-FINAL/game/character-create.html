@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Character - Depths of Ascension</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="game-header">
+            <h1>Create Your Hero</h1>
+            <button id="backBtn" class="btn btn-secondary back-btn">← Back to Login</button>
+        </header>
+
+        <main class="character-create-main">
+            <div class="character-form">
+                <form id="characterForm">
+                    <div class="form-group">
+                        <label for="characterName">Character Name:</label>
+                        <input type="text" id="characterName" name="characterName" required 
+                               minlength="3" maxlength="20" 
+                               placeholder="Enter your character's name">
+                    </div>
+                    
+                    <div class="character-preview">
+                        <h3>Starting Character</h3>
+                        <div class="stats-preview">
+                            <div class="stat-group">
+                                <h4>Health & Energy</h4>
+                                <p>HP: 20/20 (Base: 20)</p>
+                                <p>Energy: 10/10 (Base: 10)</p>
+                            </div>
+                            
+                            <div class="stat-group">
+                                <h4>Starting Skills (All Level 0)</h4>
+                                <div class="skills-grid">
+                                    <div class="skill-category">
+                                        <h5>Combat</h5>
+                                        <ul>
+                                            <li>Swordsmanship</li>
+                                            <li>Archery</li>
+                                            <li>Axe Fighting</li>
+                                            <li>Unarmed Combat</li>
+                                            <li>Dual Wielding</li>
+                                        </ul>
+                                    </div>
+                                    
+                                    <div class="skill-category">
+                                        <h5>Magic</h5>
+                                        <ul>
+                                            <li>Fire Magic</li>
+                                            <li>Ice Magic</li>
+                                            <li>Lightning Magic</li>
+                                            <li>Healing Magic</li>
+                                            <li>Arcane Magic</li>
+                                        </ul>
+                                    </div>
+                                    
+                                    <div class="skill-category">
+                                        <h5>Defensive</h5>
+                                        <ul>
+                                            <li>Shield Use</li>
+                                            <li>Dodge</li>
+                                            <li>Armor Training</li>
+                                            <li>Parry</li>
+                                        </ul>
+                                    </div>
+                                    
+                                    <div class="skill-category">
+                                        <h5>Utility</h5>
+                                        <ul>
+                                            <li>Lockpicking</li>
+                                            <li>First Aid</li>
+                                            <li>Trap Disarm</li>
+                                            <li>Stealth</li>
+                                        </ul>
+                                    </div>
+                                    
+                                    <div class="skill-category">
+                                        <h5>Exploration</h5>
+                                        <ul>
+                                            <li>Perception</li>
+                                            <li>Trap Detection</li>
+                                            <li>Navigation</li>
+                                            <li>Climbing</li>
+                                        </ul>
+                                    </div>
+                                    
+                                    <div class="skill-category">
+                                        <h5>Crafting & More</h5>
+                                        <ul>
+                                            <li>Weaponsmithing</li>
+                                            <li>Alchemy</li>
+                                            <li>Armorsmithing</li>
+                                            <li>Enchanting</li>
+                                            <li>Mining</li>
+                                            <li>Herbalism</li>
+                                            <li>Skinning</li>
+                                            <li>Smelting</li>
+                                            <li>Herb Processing</li>
+                                            <li>Gem Cutting</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="stat-group">
+                                <h4>Starting Equipment</h4>
+                                <ul>
+                                    <li>Rusty Sword (+1 damage)</li>
+                                    <li>Cloth Armor (+1 defense)</li>
+                                    <li>Health Potion (restores 15 HP)</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="stat-group">
+                                <h4>Basic Abilities</h4>
+                                <ul>
+                                    <li><strong>Basic Attack</strong> - Attack with equipped weapon (0 energy)</li>
+                                    <li><strong>Defend</strong> - Reduce damage taken this turn (0 energy)</li>
+                                    <li><strong>Move</strong> - Reposition in room (0 energy)</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Create Character</button>
+                    </div>
+                </form>
+                
+                <div id="errorMessage" class="error-message" style="display: none;"></div>
+                <div id="loadingMessage" class="loading-message" style="display: none;">
+                    Forging your hero...
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/airtable-client.js"></script>
+    <script>
+        let currentPlayer = null;
+
+        document.getElementById('characterForm').addEventListener('submit', handleCreateCharacter);
+        document.getElementById('backBtn').addEventListener('click', () => {
+            window.location.href = 'index.html';
+        });
+
+        async function handleCreateCharacter(e) {
+            e.preventDefault();
+            
+            const characterName = document.getElementById('characterName').value.trim();
+            
+            if (!characterName) {
+                showError('Please enter a character name');
+                return;
+            }
+            
+            if (characterName.length < 3 || characterName.length > 20) {
+                showError('Character name must be 3-20 characters');
+                return;
+            }
+            
+            if (!currentPlayer) {
+                showError('No player logged in');
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            showLoading(true);
+            
+            try {
+                const character = await AirtableClient.createCharacter(currentPlayer.player_id, characterName);
+                if (character) {
+                    localStorage.setItem('selectedCharacter', JSON.stringify(character));
+                    window.location.href = 'game.html';
+                } else {
+                    showError('Character creation failed');
+                }
+            } catch (error) {
+                console.error('Character creation error:', error);
+                showError('Character creation failed. Please try again.');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        function showLoading(show) {
+            document.getElementById('loadingMessage').style.display = show ? 'block' : 'none';
+        }
+
+        // Check if user is logged in
+        window.addEventListener('load', () => {
+            const savedPlayer = localStorage.getItem('currentPlayer');
+            if (!savedPlayer) {
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            currentPlayer = JSON.parse(savedPlayer);
+        });
+    </script>
+</body>
+</html>

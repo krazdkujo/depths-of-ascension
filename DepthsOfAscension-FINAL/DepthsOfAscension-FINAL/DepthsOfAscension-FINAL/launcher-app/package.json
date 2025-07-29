@@ -1,0 +1,75 @@
+{
+  "name": "depths-of-ascension-launcher",
+  "version": "1.0.0",
+  "description": "Secure desktop launcher for Depths of Ascension game",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder",
+    "build-win": "electron-builder --win",
+    "build-mac": "electron-builder --mac",
+    "build-linux": "electron-builder --linux",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder --publish=never"
+  },
+  "author": "Depths of Ascension Team",
+  "build": {
+    "appId": "com.depthsofascension.launcher",
+    "productName": "Depths of Ascension Launcher",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "launcher.html",
+      "package.json",
+      "../index.html",
+      "../character-create.html", 
+      "../game.html",
+      "../admin.html",
+      "../js/**/*",
+      "../css/**/*",
+      "../api/**/*",
+      "../vercel.json",
+      "../package.json",
+      "../README.md"
+    ],
+    "extraResources": [
+      {
+        "from": "../",
+        "to": "game",
+        "filter": [
+          "**/*",
+          "!launcher-app/**",
+          "!node_modules/**",
+          "!.git/**",
+          "!*.log",
+          "!.env*"
+        ]
+      }
+    ],
+    "win": {
+      "target": "portable",
+      "publisherName": "Depths of Ascension Team"
+    },
+    "mac": {
+      "target": "dmg"
+    },
+    "linux": {
+      "target": "AppImage",
+      "category": "Game"
+    },
+    "forceCodeSigning": false,
+    "electronVersion": "25.9.8"
+  },
+  "devDependencies": {
+    "electron": "^25.0.0",
+    "electron-builder": "^24.0.0"
+  },
+  "dependencies": {
+    "keytar": "^7.9.0",
+    "node-fetch": "^2.6.11",
+    "fs-extra": "^11.1.1"
+  }
+}

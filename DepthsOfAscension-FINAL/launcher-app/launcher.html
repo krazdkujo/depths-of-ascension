@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Depths of Ascension - Secure Launcher</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .titlebar {
+            -webkit-app-region: drag;
+            background: rgba(0, 0, 0, 0.2);
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .launcher-container {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.95);
+            margin: 20px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .header h1 {
+            font-size: 2.2rem;
+            margin-bottom: 8px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .header p {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+        
+        .security-badge {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(40, 167, 69, 0.2);
+            border: 1px solid #28a745;
+            border-radius: 20px;
+            padding: 8px 16px;
+            font-size: 12px;
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 30px;
+            overflow-y: auto;
+        }
+        
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #e9ecef;
+            margin-bottom: 25px;
+        }
+        
+        .tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 14px;
+            font-weight: 500;
+            color: #6c757d;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+            flex: 1;
+            text-align: center;
+        }
+        
+        .tab.active {
+            color: #2a5298;
+            border-bottom-color: #2a5298;
+        }
+        
+        .tab:hover {
+            color: #2a5298;
+            background: rgba(42, 82, 152, 0.05);
+        }
+        
+        .tab-content {
+            display: none;
+            flex: 1;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .tab-content.active {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .status-card {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .status-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .status-card.success {
+            border-color: #28a745;
+            background: rgba(40, 167, 69, 0.05);
+        }
+        
+        .status-card.error {
+            border-color: #dc3545;
+            background: rgba(220, 53, 69, 0.05);
+        }
+        
+        .status-card.warning {
+            border-color: #ffc107;
+            background: rgba(255, 193, 7, 0.05);
+        }
+        
+        .status-card.checking {
+            border-color: #17a2b8;
+            background: rgba(23, 162, 184, 0.05);
+        }
+        
+        .status-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        .status-card h4 {
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+        
+        .status-card p {
+            color: #6c757d;
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+        }
+        
+        .status-text {
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .form-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .form-section h3 {
+            margin-bottom: 15px;
+            color: #2a5298;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #495057;
+            font-size: 14px;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+            background: white;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #2a5298;
+            box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.1);
+        }
+        
+        .form-group.success input {
+            border-color: #28a745;
+        }
+        
+        .form-group.error input {
+            border-color: #dc3545;
+        }
+        
+        .validation-message {
+            margin-top: 5px;
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        
+        .validation-message.success {
+            background: rgba(40, 167, 69, 0.1);
+            color: #28a745;
+        }
+        
+        .validation-message.error {
+            background: rgba(220, 53, 69, 0.1);
+            color: #dc3545;
+        }
+        
+        .security-info {
+            background: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 15px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+            margin-bottom: 8px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #2a5298, #1e3c72);
+            color: white;
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(42, 82, 152, 0.3);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+        }
+        
+        .btn-success:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #ffc107, #fd7e14);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .progress-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .progress-section.active {
+            display: block;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #2a5298, #667eea);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .progress-text {
+            text-align: center;
+            font-size: 14px;
+            color: #6c757d;
+        }
+        
+        .log-container {
+            background: #1a1a1a;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            padding: 15px;
+            border-radius: 6px;
+            height: 250px;
+            overflow-y: auto;
+            font-size: 11px;
+            line-height: 1.4;
+            margin-top: 15px;
+        }
+        
+        .log-entry {
+            margin-bottom: 3px;
+            word-break: break-all;
+        }
+        
+        .log-entry.error {
+            color: #ff6b6b;
+        }
+        
+        .log-entry.warning {
+            color: #feca57;
+        }
+        
+        .log-entry.success {
+            color: #48dbfb;
+        }
+        
+        .directory-selector {
+            background: #fff;
+            border: 2px dashed #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+        
+        .directory-selector:hover {
+            border-color: #2a5298;
+            background: rgba(42, 82, 152, 0.05);
+        }
+        
+        .directory-selector.selected {
+            border-color: #28a745;
+            background: rgba(40, 167, 69, 0.05);
+        }
+        
+        .footer-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-top: 1px solid #e9ecef;
+            margin-top: auto;
+        }
+        
+        .version-info {
+            color: #6c757d;
+            font-size: 12px;
+        }
+        
+        .encrypted-badge {
+            background: #28a745;
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-left: 8px;
+        }
+        
+        .spinner {
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #2a5298;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="titlebar">
+        🎮 Depths of Ascension - Secure Launcher
+    </div>
+    
+    <div class="launcher-container">
+        <div class="header">
+            <div class="security-badge">🔒 SECURE</div>
+            <h1>Depths of Ascension</h1>
+            <p>Secure Configuration & Deployment</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('status')">🔍 Status</button>
+                <button class="tab" onclick="switchTab('config')">⚙️ Config</button>
+                <button class="tab" onclick="switchTab('deploy')">🚀 Deploy</button>
+            </div>
+            
+            <!-- Status Tab -->
+            <div id="statusTab" class="tab-content active">
+                <div class="status-grid">
+                    <div class="status-card checking" id="nodeStatus">
+                        <div class="status-icon">📦</div>
+                        <h4>Node.js</h4>
+                        <p>Runtime environment</p>
+                        <div class="status-text">Checking...</div>
+                    </div>
+                    
+                    <div class="status-card" id="gitStatus">
+                        <div class="status-icon">🌐</div>
+                        <h4>Git</h4>
+                        <p>Version control</p>
+                        <div class="status-text">Not checked</div>
+                    </div>
+                    
+                    <div class="status-card" id="vercelStatus">
+                        <div class="status-icon">☁️</div>
+                        <h4>Vercel CLI</h4>
+                        <p>Deployment tool</p>
+                        <div class="status-text">Not checked</div>
+                    </div>
+                    
+                    <div class="status-card" id="airtableConnStatus">
+                        <div class="status-icon">🗄️</div>
+                        <h4>Airtable</h4>
+                        <p>Database connection</p>
+                        <div class="status-text">Not configured</div>
+                    </div>
+                    
+                    <div class="status-card" id="openaiConnStatus">
+                        <div class="status-icon">🤖</div>
+                        <h4>OpenAI</h4>
+                        <p>AI service</p>
+                        <div class="status-text">Not configured</div>
+                    </div>
+                    
+                    <div class="status-card success" id="securityStatus">
+                        <div class="status-icon">🔐</div>
+                        <h4>Security</h4>
+                        <p>Credential storage</p>
+                        <div class="status-text">Keychain active</div>
+                    </div>
+                </div>
+                
+                <div class="footer-actions">
+                    <div class="version-info">v1.0.0 - Secure Edition</div>
+                    <div>
+                        <button class="btn btn-primary" onclick="checkAllSystems()">🔄 Refresh Status</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Configuration Tab -->
+            <div id="configTab" class="tab-content">
+                <div class="directory-selector" id="directorySelector" onclick="selectGameDirectory()">
+                    <div style="font-size: 2rem; margin-bottom: 10px;">📁</div>
+                    <div id="directoryText">Click to select game directory</div>
+                    <div style="font-size: 12px; color: #6c757d; margin-top: 5px;">
+                        Choose the folder containing your Depths of Ascension project
+                    </div>
+                </div>
+                
+                <div class="form-section">
+                    <h3>🗄️ Airtable Configuration</h3>
+                    <div class="security-info">
+                        🔒 Your Personal Access Token is encrypted and stored in your system's secure keychain
+                    </div>
+                    
+                    <div class="form-group" id="airtablePATGroup">
+                        <label for="airtablePAT">
+                            Personal Access Token
+                            <span class="encrypted-badge">ENCRYPTED</span>
+                        </label>
+                        <input type="password" id="airtablePAT" placeholder="pat...">
+                        <div class="validation-message" id="airtablePATValidation"></div>
+                    </div>
+                    
+                    <div class="form-group" id="airtableBaseIdGroup">
+                        <label for="airtableBaseId">Base ID</label>
+                        <input type="text" id="airtableBaseId" placeholder="app..." title="Find this in your Airtable base URL: airtable.com/app[BASE_ID]/...">
+                        <div class="validation-message" id="airtableBaseIdValidation">
+                            💡 Find your Base ID in the Airtable URL: airtable.com/app[BASE_ID]/...
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-primary" onclick="testAirtableConnection()">🧪 Test Connection</button>
+                </div>
+                
+                <div class="form-section">
+                    <h3>🤖 OpenAI Configuration</h3>
+                    <div class="security-info">
+                        🔒 Your API key is encrypted and stored securely - never saved as plain text
+                    </div>
+                    
+                    <div class="form-group" id="openaiKeyGroup">
+                        <label for="openaiApiKey">
+                            API Key
+                            <span class="encrypted-badge">ENCRYPTED</span>
+                        </label>
+                        <input type="password" id="openaiApiKey" placeholder="sk-...">
+                        <div class="validation-message" id="openaiKeyValidation"></div>
+                    </div>
+                    
+                    <button class="btn btn-primary" onclick="testOpenAIConnection()">🧪 Test API</button>
+                </div>
+                
+                <div class="form-section">
+                    <h3>👔 Admin Configuration</h3>
+                    <div class="security-info">
+                        🔒 Admin password is hashed and stored securely
+                    </div>
+                    
+                    <div class="form-group" id="adminPasswordGroup">
+                        <label for="adminPassword">
+                            Admin Panel Password
+                            <span class="encrypted-badge">ENCRYPTED</span>
+                        </label>
+                        <input type="password" id="adminPassword" placeholder="Minimum 8 characters">
+                        <div class="validation-message" id="adminPasswordValidation"></div>
+                    </div>
+                </div>
+                
+                <div class="footer-actions">
+                    <div></div>
+                    <div>
+                        <button class="btn btn-secondary" onclick="loadExistingConfig()">📂 Load Saved</button>
+                        <button class="btn btn-success" onclick="saveConfiguration()" id="saveConfigBtn" disabled>💾 Save Securely</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Deploy Tab -->
+            <div id="deployTab" class="tab-content">
+                <div class="form-section">
+                    <h3>🚀 Deployment Settings</h3>
+                    
+                    <div class="form-group">
+                        <label for="projectName">Project Name</label>
+                        <input type="text" id="projectName" value="depths-of-ascension">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="deployRegion">Region</label>
+                        <select id="deployRegion">
+                            <option value="auto">Auto (Recommended)</option>
+                            <option value="us-east-1">US East</option>
+                            <option value="us-west-2">US West</option>
+                            <option value="eu-west-1">Europe</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="progress-section" id="deployProgress">
+                    <h3>🔄 Deployment Progress</h3>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="deployProgressFill"></div>
+                    </div>
+                    <div class="progress-text" id="deployProgressText">Ready to deploy</div>
+                </div>
+                
+                <div class="footer-actions">
+                    <div>
+                        <button class="btn btn-secondary" onclick="loginToVercel()">🔐 Auto Login</button>
+                        <button class="btn btn-secondary" onclick="openTerminalForLogin()">💻 Manual Login</button>
+                    </div>
+                    <div>
+                        <button class="btn btn-primary" onclick="createEnvironmentFile()" id="createEnvBtn" disabled>📄 Create Env File</button>
+                        <button class="btn btn-success" onclick="deployGame()" id="deployBtn" disabled>🚀 Deploy</button>
+                    </div>
+                </div>
+                
+                <div class="log-container" id="logContainer">
+                    <div class="log-entry">[INFO] Secure launcher initialized</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let gameDirectory = null;
+        let systemStatus = {};
+        let configValid = false;
+
+        // Tab management
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            event.target.classList.add('active');
+            
+            log(`Switched to ${tabName} tab`);
+        }
+
+        // System status checking
+        async function checkAllSystems() {
+            log('Checking system requirements...');
+            
+            try {
+                const systems = await window.electronAPI.checkSystem();
+                
+                updateStatusCard('nodeStatus', systems.node.installed, 
+                    systems.node.installed ? systems.node.version : 'Not found');
+                
+                updateStatusCard('gitStatus', systems.git.installed,
+                    systems.git.installed ? systems.git.version : 'Not found');
+                
+                updateStatusCard('vercelStatus', systems.vercel.installed,
+                    systems.vercel.installed ? systems.vercel.version : 'Not installed');
+                
+                systemStatus = systems;
+                log('System check completed');
+                
+                // Check for existing credentials
+                await loadExistingConfig();
+                
+            } catch (error) {
+                log(`System check failed: ${error.message}`, 'error');
+            }
+        }
+
+        function updateStatusCard(cardId, success, text) {
+            const card = document.getElementById(cardId);
+            const statusClass = success ? 'success' : 'error';
+            card.className = `status-card ${statusClass}`;
+            card.querySelector('.status-text').textContent = text;
+        }
+
+        // Directory selection
+        async function selectGameDirectory() {
+            try {
+                const result = await window.electronAPI.selectDirectory();
+                if (result.success) {
+                    gameDirectory = result.directory;
+                    const selector = document.getElementById('directorySelector');
+                    selector.classList.add('selected');
+                    document.getElementById('directoryText').textContent = gameDirectory;
+                    
+                    // Enable deployment buttons
+                    updateDeploymentButtons();
+                    
+                    log(`Game directory selected: ${gameDirectory}`);
+                }
+            } catch (error) {
+                log(`Failed to select directory: ${error.message}`, 'error');
+            }
+        }
+
+        // Configuration management
+        async function loadExistingConfig() {
+            try {
+                // Check for existing credentials
+                const airtableResult = await window.electronAPI.getCredential('depths-ascension', 'airtable-pat');
+                if (airtableResult.success && airtableResult.password) {
+                    document.getElementById('airtablePAT').placeholder = '••••••••••••••••';
+                    showValidation('airtablePAT', true, 'Stored securely');
+                }
+                
+                const openaiResult = await window.electronAPI.getCredential('depths-ascension', 'openai-key');
+                if (openaiResult.success && openaiResult.password) {
+                    document.getElementById('openaiApiKey').placeholder = '••••••••••••••••';
+                    showValidation('openaiKey', true, 'Stored securely');
+                }
+                
+                const adminResult = await window.electronAPI.getCredential('depths-ascension', 'admin-password');
+                if (adminResult.success && adminResult.password) {
+                    document.getElementById('adminPassword').placeholder = '••••••••••••••••';
+                    showValidation('adminPassword', true, 'Stored securely');
+                }
+                
+                // Load base ID from localStorage as it's not sensitive
+                const baseId = localStorage.getItem('airtable-base-id');
+                if (baseId) {
+                    document.getElementById('airtableBaseId').value = baseId;
+                }
+                
+                validateConfiguration();
+                
+            } catch (error) {
+                log(`Failed to load configuration: ${error.message}`, 'error');
+            }
+        }
+
+        async function saveConfiguration() {
+            try {
+                const airtablePAT = document.getElementById('airtablePAT').value;
+                const openaiKey = document.getElementById('openaiApiKey').value;
+                const adminPassword = document.getElementById('adminPassword').value;
+                const baseId = document.getElementById('airtableBaseId').value;
+                
+                // Store credentials securely
+                if (airtablePAT) {
+                    await window.electronAPI.storeCredential('depths-ascension', 'airtable-pat', airtablePAT);
+                    document.getElementById('airtablePAT').value = '';
+                    document.getElementById('airtablePAT').placeholder = '••••••••••••••••';
+                }
+                
+                if (openaiKey) {
+                    await window.electronAPI.storeCredential('depths-ascension', 'openai-key', openaiKey);
+                    document.getElementById('openaiApiKey').value = '';
+                    document.getElementById('openaiApiKey').placeholder = '••••••••••••••••';
+                }
+                
+                if (adminPassword) {
+                    await window.electronAPI.storeCredential('depths-ascension', 'admin-password', adminPassword);
+                    document.getElementById('adminPassword').value = '';
+                    document.getElementById('adminPassword').placeholder = '••••••••••••••••';
+                }
+                
+                // Store non-sensitive data in localStorage
+                localStorage.setItem('airtable-base-id', baseId);
+                
+                log('Configuration saved securely');
+                validateConfiguration();
+                updateDeploymentButtons();
+                
+            } catch (error) {
+                log(`Failed to save configuration: ${error.message}`, 'error');
+            }
+        }
+
+        function validateConfiguration() {
+            let isValid = true;
+            
+            // Check if we have stored credentials or valid input
+            const hasAirtable = document.getElementById('airtablePAT').placeholder.includes('•') || 
+                              (document.getElementById('airtablePAT').value && 
+                               document.getElementById('airtablePAT').value.startsWith('pat'));
+            
+            const hasOpenAI = document.getElementById('openaiApiKey').placeholder.includes('•') || 
+                            (document.getElementById('openaiApiKey').value && 
+                             document.getElementById('openaiApiKey').value.startsWith('sk-'));
+            
+            const hasAdmin = document.getElementById('adminPassword').placeholder.includes('•') || 
+                           (document.getElementById('adminPassword').value && 
+                            document.getElementById('adminPassword').value.length >= 8);
+            
+            const baseId = document.getElementById('airtableBaseId').value;
+            const hasValidBaseId = baseId && baseId.startsWith('app') && baseId.length >= 15;
+            
+            if (!hasAirtable) {
+                showValidation('airtablePAT', false, 'Required');
+                isValid = false;
+            } else {
+                showValidation('airtablePAT', true, hasAirtable && !document.getElementById('airtablePAT').placeholder.includes('•') ? 'Valid format' : 'Stored securely');
+            }
+            
+            if (!hasValidBaseId) {
+                showValidation('airtableBaseId', false, 'Enter your Airtable Base ID (starts with "app")');
+                isValid = false;
+            } else {
+                showValidation('airtableBaseId', true, 'Valid Base ID format');
+            }
+            
+            if (!hasOpenAI) {
+                showValidation('openaiKey', false, 'Required');
+                isValid = false;
+            } else {
+                showValidation('openaiKey', true, hasOpenAI && !document.getElementById('openaiApiKey').placeholder.includes('•') ? 'Valid format' : 'Stored securely');
+            }
+            
+            if (!hasAdmin) {
+                showValidation('adminPassword', false, 'Minimum 8 characters required');
+                isValid = false;
+            } else {
+                showValidation('adminPassword', true, hasAdmin && !document.getElementById('adminPassword').placeholder.includes('•') ? 'Valid length' : 'Stored securely');
+            }
+            
+            configValid = isValid;
+            const saveBtn = document.getElementById('saveConfigBtn');
+            if (saveBtn) {
+                saveBtn.disabled = !isValid;
+            }
+            updateDeploymentButtons();
+            
+            return isValid;
+        }
+
+        function showValidation(fieldId, isValid, message) {
+            const group = document.getElementById(fieldId + 'Group');
+            const validation = document.getElementById(fieldId + 'Validation');
+            
+            if (group) {
+                group.className = isValid ? 'form-group success' : 'form-group error';
+            } else {
+                console.warn(`Element ${fieldId}Group not found`);
+            }
+            
+            if (validation) {
+                validation.className = isValid ? 'validation-message success' : 'validation-message error';
+                validation.textContent = message;
+            } else {
+                console.warn(`Element ${fieldId}Validation not found`);
+            }
+        }
+
+        // Connection testing
+        async function testAirtableConnection() {
+            try {
+                let token = document.getElementById('airtablePAT').value;
+                
+                if (!token) {
+                    const result = await window.electronAPI.getCredential('depths-ascension', 'airtable-pat');
+                    if (result.success) {
+                        token = result.password;
+                    }
+                }
+                
+                if (!token) {
+                    showValidation('airtablePAT', false, 'No token available');
+                    return;
+                }
+                
+                const baseId = document.getElementById('airtableBaseId').value;
+                updateStatusCard('airtableConnStatus', false, 'Testing...');
+                
+                const result = await window.electronAPI.validateAirtable(token, baseId);
+                
+                if (result.success) {
+                    updateStatusCard('airtableConnStatus', true, 'Connected');
+                    showValidation('airtablePAT', true, 'Connection successful');
+                    log('Airtable connection test passed');
+                } else {
+                    updateStatusCard('airtableConnStatus', false, 'Connection failed');
+                    showValidation('airtablePAT', false, result.error);
+                    log(`Airtable connection failed: ${result.error}`, 'error');
+                }
+                
+            } catch (error) {
+                log(`Airtable test failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testOpenAIConnection() {
+            try {
+                let apiKey = document.getElementById('openaiApiKey').value;
+                
+                if (!apiKey) {
+                    const result = await window.electronAPI.getCredential('depths-ascension', 'openai-key');
+                    if (result.success) {
+                        apiKey = result.password;
+                    }
+                }
+                
+                if (!apiKey) {
+                    showValidation('openaiKey', false, 'No API key available');
+                    return;
+                }
+                
+                updateStatusCard('openaiConnStatus', false, 'Testing...');
+                
+                const result = await window.electronAPI.validateOpenAI(apiKey);
+                
+                if (result.success) {
+                    updateStatusCard('openaiConnStatus', true, 'API active');
+                    showValidation('openaiKey', true, `${result.models} models available`);
+                    log('OpenAI connection test passed');
+                } else {
+                    updateStatusCard('openaiConnStatus', false, 'API error');
+                    showValidation('openaiKey', false, result.error);
+                    log(`OpenAI connection failed: ${result.error}`, 'error');
+                }
+                
+            } catch (error) {
+                log(`OpenAI test failed: ${error.message}`, 'error');
+            }
+        }
+
+        // Deployment
+        function updateDeploymentButtons() {
+            const hasDirectory = gameDirectory !== null;
+            const hasConfig = configValid;
+            
+            const createEnvBtn = document.getElementById('createEnvBtn');
+            const deployBtn = document.getElementById('deployBtn');
+            
+            if (createEnvBtn) {
+                createEnvBtn.disabled = !(hasDirectory && hasConfig);
+            }
+            if (deployBtn) {
+                deployBtn.disabled = !(hasDirectory && hasConfig);
+            }
+        }
+
+        async function createEnvironmentFile() {
+            try {
+                const progress = document.getElementById('deployProgress');
+                progress.classList.add('active');
+                updateProgress(25, 'Creating environment file...');
+                
+                // Get credentials
+                const airtableResult = await window.electronAPI.getCredential('depths-ascension', 'airtable-pat');
+                const openaiResult = await window.electronAPI.getCredential('depths-ascension', 'openai-key');
+                const adminResult = await window.electronAPI.getCredential('depths-ascension', 'admin-password');
+                
+                const config = {
+                    airtablePAT: airtableResult.password || '',
+                    airtableBaseId: document.getElementById('airtableBaseId').value,
+                    openaiApiKey: openaiResult.password || '',
+                    adminPassword: adminResult.password || ''
+                };
+                
+                updateProgress(75, 'Writing secure environment file...');
+                
+                const result = await window.electronAPI.createEnvFile(config);
+                
+                if (result.success) {
+                    updateProgress(100, 'Environment file created successfully');
+                    log(`Environment file created: ${result.path}`);
+                } else {
+                    throw new Error(result.error);
+                }
+                
+            } catch (error) {
+                log(`Failed to create environment file: ${error.message}`, 'error');
+                updateProgress(0, 'Failed to create environment file');
+            }
+        }
+
+        async function deployGame() {
+            try {
+                const progress = document.getElementById('deployProgress');
+                progress.classList.add('active');
+                
+                updateProgress(10, 'Starting deployment...');
+                
+                // Get credentials for deployment
+                const airtableResult = await window.electronAPI.getCredential('depths-ascension', 'airtable-pat');
+                const openaiResult = await window.electronAPI.getCredential('depths-ascension', 'openai-key');
+                const adminResult = await window.electronAPI.getCredential('depths-ascension', 'admin-password');
+                
+                updateProgress(20, 'Preparing deployment configuration...');
+                
+                const config = {
+                    projectName: document.getElementById('projectName').value,
+                    region: document.getElementById('deployRegion').value,
+                    airtablePAT: airtableResult.password || '',
+                    airtableBaseId: document.getElementById('airtableBaseId').value,
+                    openaiApiKey: openaiResult.password || '',
+                    adminPassword: adminResult.password || ''
+                };
+                
+                updateProgress(30, 'Deploying to Vercel...');
+                
+                const result = await window.electronAPI.deployGame(config);
+                
+                if (result.success) {
+                    updateProgress(100, `Deployed successfully: ${result.url}`);
+                    log(`Deployment successful: ${result.url}`);
+                    
+                    // Show success message
+                    setTimeout(() => {
+                        alert(`🎉 Deployment Successful!\n\nYour game is now live at:\n${result.url}\n\nNext steps:\n1. Visit the admin panel to initialize the database\n2. Create your first character and start playing!`);
+                    }, 1000);
+                    
+                } else {
+                    throw new Error(result.error);
+                }
+                
+            } catch (error) {
+                log(`Deployment failed: ${error.message}`, 'error');
+                updateProgress(0, 'Deployment failed');
+            }
+        }
+
+        function updateProgress(percentage, text) {
+            document.getElementById('deployProgressFill').style.width = percentage + '%';
+            document.getElementById('deployProgressText').textContent = text;
+        }
+
+        // Vercel login helper
+        async function loginToVercel() {
+            try {
+                if (!gameDirectory) {
+                    alert('Please select a game directory first.');
+                    return;
+                }
+                
+                log('Opening Vercel login process...');
+                const result = await window.electronAPI.loginToVercel();
+                
+                if (result.success) {
+                    log('Vercel login successful');
+                    alert('✅ Successfully logged into Vercel!\n\nYou can now deploy your game.');
+                } else {
+                    log(`Vercel login failed: ${result.error}`, 'error');
+                    alert('❌ Vercel login failed. Please try again or login manually using "vercel login" in your terminal.');
+                }
+                
+            } catch (error) {
+                log(`Vercel login error: ${error.message}`, 'error');
+                alert('❌ Error during Vercel login. Please check your internet connection and try again.');
+            }
+        }
+
+        // Manual login helper
+        async function openTerminalForLogin() {
+            try {
+                if (!gameDirectory) {
+                    alert('Please select a game directory first.');
+                    return;
+                }
+                
+                log('Opening terminal for manual Vercel login...');
+                alert(`🔧 Manual Login Instructions:\n\n1. A terminal window will open\n2. Run: vercel login\n3. Follow the browser login process\n4. Return to this launcher\n5. Click Deploy\n\nThe terminal will open in: ${gameDirectory}`);
+                
+                const result = await window.electronAPI.openTerminal(gameDirectory);
+                
+                if (result.success) {
+                    log('Terminal opened for manual login');
+                } else {
+                    log(`Failed to open terminal: ${result.error}`, 'error');
+                    alert('❌ Could not open terminal. Please manually:\n1. Open Command Prompt\n2. Navigate to: ' + gameDirectory + '\n3. Run: vercel login');
+                }
+                
+            } catch (error) {
+                log(`Terminal open error: ${error.message}`, 'error');
+                alert('❌ Error opening terminal. Please manually open Command Prompt in your deployment directory and run "vercel login".');
+            }
+        }
+
+        // Logging
+        function log(message, level = 'info') {
+            const container = document.getElementById('logContainer');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${level}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            
+            container.appendChild(entry);
+            container.scrollTop = container.scrollHeight;
+            
+            // Keep only last 100 entries
+            while (container.children.length > 100) {
+                container.removeChild(container.firstChild);
+            }
+        }
+
+        // Log to main process only (no UI update to prevent loops)
+        function logToMain(message, level = 'info') {
+            window.electronAPI.log(message, level);
+        }
+
+        // Event listeners
+        document.getElementById('airtablePAT').addEventListener('input', validateConfiguration);
+        document.getElementById('airtableBaseId').addEventListener('input', validateConfiguration);
+        document.getElementById('openaiApiKey').addEventListener('input', validateConfiguration);
+        document.getElementById('adminPassword').addEventListener('input', validateConfiguration);
+
+        // Listen for log messages from main process
+        window.electronAPI.onLogMessage((event, logData) => {
+            log(logData.message, logData.level);
+        });
+
+        // Initialize
+        window.addEventListener('DOMContentLoaded', () => {
+            log('Secure launcher initialized');
+            checkAllSystems();
+        });
+    </script>
+</body>
+</html>

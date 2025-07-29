@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Depths of Ascension - Login</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="game-header">
+            <h1>Depths of Ascension</h1>
+            <p class="subtitle">A Semi-Roguelike Cooperative Adventure</p>
+        </header>
+
+        <main class="login-main">
+            <div class="login-form">
+                <h2>Enter Your World</h2>
+                
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="username">Username:</label>
+                        <input type="text" id="username" name="username" required 
+                               minlength="3" maxlength="20" 
+                               placeholder="Enter your username">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password">Password:</label>
+                        <input type="password" id="password" name="password" required 
+                               placeholder="Enter your password">
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Login</button>
+                        <button type="button" id="registerBtn" class="btn btn-secondary">Create Account</button>
+                    </div>
+                </form>
+                
+                <div id="errorMessage" class="error-message" style="display: none;"></div>
+                <div id="loadingMessage" class="loading-message" style="display: none;">
+                    Connecting to the depths...
+                </div>
+            </div>
+            
+            <div class="character-selection" id="characterSelection" style="display: none;">
+                <h2>Select Your Character</h2>
+                <div id="characterList" class="character-list"></div>
+                <div class="character-actions">
+                    <button id="createCharacterBtn" class="btn btn-primary">Create New Character</button>
+                    <button id="enterDungeonBtn" class="btn btn-success" disabled>Enter Dungeon</button>
+                </div>
+            </div>
+        </main>
+        
+        <footer class="game-footer">
+            <p>© 2025 Depths of Ascension - A skill-based cooperative adventure</p>
+        </footer>
+    </div>
+
+    <script src="js/airtable-client.js"></script>
+    <script>
+        let currentPlayer = null;
+        let selectedCharacter = null;
+
+        document.getElementById('loginForm').addEventListener('submit', handleLogin);
+        document.getElementById('registerBtn').addEventListener('click', handleRegister);
+        document.getElementById('createCharacterBtn').addEventListener('click', () => {
+            window.location.href = 'character-create.html';
+        });
+        document.getElementById('enterDungeonBtn').addEventListener('click', handleEnterDungeon);
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            
+            if (!username || !password) {
+                showError('Please enter both username and password');
+                return;
+            }
+            
+            showLoading(true);
+            
+            try {
+                const player = await AirtableClient.authenticatePlayer(username, password);
+                if (player) {
+                    currentPlayer = player;
+                    localStorage.setItem('currentPlayer', JSON.stringify(player));
+                    await loadPlayerCharacters();
+                } else {
+                    showError('Invalid username or password');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showError('Login failed. Please try again.');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function handleRegister() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            
+            if (!username || !password) {
+                showError('Please enter both username and password');
+                return;
+            }
+            
+            if (username.length < 3 || username.length > 20) {
+                showError('Username must be 3-20 characters');
+                return;
+            }
+            
+            showLoading(true);
+            
+            try {
+                const player = await AirtableClient.createPlayer(username, password);
+                if (player) {
+                    currentPlayer = player;
+                    localStorage.setItem('currentPlayer', JSON.stringify(player));
+                    await loadPlayerCharacters();
+                } else {
+                    showError('Username already exists');
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                showError('Registration failed. Please try again.');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function loadPlayerCharacters() {
+            try {
+                const characters = await AirtableClient.getPlayerCharacters(currentPlayer.player_id);
+                displayCharacters(characters);
+                
+                document.querySelector('.login-form').style.display = 'none';
+                document.getElementById('characterSelection').style.display = 'block';
+            } catch (error) {
+                console.error('Error loading characters:', error);
+                showError('Failed to load characters');
+            }
+        }
+
+        function displayCharacters(characters) {
+            const characterList = document.getElementById('characterList');
+            characterList.innerHTML = '';
+            
+            if (characters.length === 0) {
+                characterList.innerHTML = '<p class="no-characters">No characters yet. Create your first hero!</p>';
+                return;
+            }
+            
+            characters.forEach(character => {
+                const characterCard = document.createElement('div');
+                characterCard.className = 'character-card';
+                characterCard.innerHTML = `
+                    <h3>${character.character_name}</h3>
+                    <div class="character-stats">
+                        <span>Level: ${character.total_level || 0}</span>
+                        <span>HP: ${character.current_hp}/${character.max_hp}</span>
+                        <span>Energy: ${character.current_energy}/${character.max_energy}</span>
+                    </div>
+                    <div class="character-status ${character.status}">${character.status}</div>
+                `;
+                
+                characterCard.addEventListener('click', () => selectCharacter(character));
+                characterList.appendChild(characterCard);
+            });
+        }
+
+        function selectCharacter(character) {
+            selectedCharacter = character;
+            
+            document.querySelectorAll('.character-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            event.target.closest('.character-card').classList.add('selected');
+            document.getElementById('enterDungeonBtn').disabled = false;
+        }
+
+        async function handleEnterDungeon() {
+            if (!selectedCharacter) {
+                showError('Please select a character');
+                return;
+            }
+            
+            localStorage.setItem('selectedCharacter', JSON.stringify(selectedCharacter));
+            window.location.href = 'game.html';
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        function showLoading(show) {
+            document.getElementById('loadingMessage').style.display = show ? 'block' : 'none';
+        }
+
+        // Check if user is already logged in
+        window.addEventListener('load', () => {
+            const savedPlayer = localStorage.getItem('currentPlayer');
+            if (savedPlayer) {
+                currentPlayer = JSON.parse(savedPlayer);
+                loadPlayerCharacters();
+            }
+        });
+    </script>
+</body>
+</html>

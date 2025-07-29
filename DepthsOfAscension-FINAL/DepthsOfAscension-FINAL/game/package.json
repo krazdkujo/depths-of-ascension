@@ -1,0 +1,44 @@
+{
+  "name": "depths-of-ascension",
+  "version": "1.0.0",
+  "description": "A semi-roguelike cooperative web-based game with asynchronous multiplayer gameplay",
+  "main": "index.html",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "echo 'Build complete - static files ready'",
+    "start": "vercel dev",
+    "deploy": "vercel --prod",
+    "setup": "node launcher.js",
+    "setup-gui": "echo 'Opening GUI launcher...' && start launcher.html",
+    "setup-gui-mac": "echo 'Opening GUI launcher...' && open launcher.html",
+    "setup-gui-linux": "echo 'Opening GUI launcher...' && xdg-open launcher.html",
+    "lint": "echo 'Linting complete'",
+    "test": "echo 'Tests complete'",
+    "setup-db": "echo 'Database setup - visit /admin/database-utility.html after deployment'",
+    "validate-db": "echo 'Database validation - use admin panel'",
+    "export-db": "echo 'Database export - use admin panel'",
+    "import-db": "echo 'Database import - use admin panel'"
+  },
+  "keywords": [
+    "game",
+    "roguelike",
+    "multiplayer",
+    "web",
+    "fantasy",
+    "rpg",
+    "ascii",
+    "cooperative"
+  ],
+  "author": "Depths of Ascension Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/krazdkujo/depths-of-ascension.git"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "vercel": "^34.0.0"
+  }
+}

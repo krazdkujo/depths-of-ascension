@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Depths of Ascension - Game</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container game-container">
+        <header class="game-header">
+            <h1>Depths of Ascension</h1>
+            <div class="header-actions">
+                <button id="menuBtn" class="btn btn-secondary">Menu</button>
+                <button id="helpBtn" class="btn btn-info">Help</button>
+            </div>
+        </header>
+
+        <main class="game-main">
+            <div class="game-layout">
+                <!-- Left Panel: Game View -->
+                <div class="game-view">
+                    <!-- Dungeon Info -->
+                    <div class="dungeon-info">
+                        <h2 id="dungeonTitle">Loading...</h2>
+                        <div class="dungeon-progress">
+                            <span id="roomProgress">Room 1 of 5</span>
+                            <span id="tickTimer">Next tick in: --:--</span>
+                        </div>
+                    </div>
+                    
+                    <!-- ASCII Room Display -->
+                    <div class="room-display">
+                        <pre id="roomAscii" class="ascii-art">Loading room...</pre>
+                    </div>
+                    
+                    <!-- Narration Area -->
+                    <div class="narration-area">
+                        <div id="currentNarration" class="current-narration">
+                            Welcome, adventurer. The depths await your courage...
+                        </div>
+                    </div>
+                    
+                    <!-- Command Input -->
+                    <div class="command-input">
+                        <form id="commandForm">
+                            <input type="text" id="commandInput" placeholder="Enter your action..." 
+                                   autocomplete="off" maxlength="200">
+                            <button type="submit" id="submitBtn" class="btn btn-primary">Submit</button>
+                        </form>
+                        <div class="quick-actions">
+                            <button class="quick-btn" data-command="attack">⚔️ Attack</button>
+                            <button class="quick-btn" data-command="defend">🛡️ Defend</button>
+                            <button class="quick-btn" data-command="move">🦶 Move</button>
+                            <button class="quick-btn" data-command="use item">💊 Use Item</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Combat Log -->
+                    <div class="combat-log">
+                        <h3>Combat Log</h3>
+                        <div id="combatLogContent" class="log-content">
+                            <div class="log-entry">Game initialized. Waiting for your first action...</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Right Panel: Character & Party Info -->
+                <div class="character-panel">
+                    <!-- Character Stats -->
+                    <div class="character-stats">
+                        <h3 id="characterName">Loading...</h3>
+                        <div class="stat-bars">
+                            <div class="stat-bar">
+                                <label>HP:</label>
+                                <div class="bar-container">
+                                    <div class="bar hp-bar">
+                                        <div id="hpBar" class="bar-fill"></div>
+                                    </div>
+                                    <span id="hpText">--/--</span>
+                                </div>
+                            </div>
+                            <div class="stat-bar">
+                                <label>Energy:</label>
+                                <div class="bar-container">
+                                    <div class="bar energy-bar">
+                                        <div id="energyBar" class="bar-fill"></div>
+                                    </div>
+                                    <span id="energyText">--/--</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="character-level">
+                            <span>Total Level: <span id="totalLevel">0</span></span>
+                        </div>
+                    </div>
+                    
+                    <!-- Skills Display -->
+                    <div class="skills-display">
+                        <h4>Top Skills</h4>
+                        <div id="skillsList" class="skills-list">
+                            Loading skills...
+                        </div>
+                    </div>
+                    
+                    <!-- Party Members -->
+                    <div class="party-display">
+                        <h4>Party</h4>
+                        <div id="partyList" class="party-list">
+                            <div class="party-member solo">Solo Adventure</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Available Abilities -->
+                    <div class="abilities-display">
+                        <h4>Abilities</h4>
+                        <div id="abilitiesList" class="abilities-list">
+                            <div class="ability" data-ability="basic_attack">
+                                <span class="ability-name">⚔️ Basic Attack</span>
+                                <span class="ability-cost">(0)</span>
+                            </div>
+                            <div class="ability" data-ability="defend">
+                                <span class="ability-name">🛡️ Defend</span>
+                                <span class="ability-cost">(0)</span>
+                            </div>
+                            <div class="ability" data-ability="move">
+                                <span class="ability-name">🦶 Move</span>
+                                <span class="ability-cost">(0)</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Inventory -->
+                    <div class="inventory-display">
+                        <h4>Inventory</h4>
+                        <div id="inventoryList" class="inventory-list">
+                            Loading inventory...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <!-- Game Menu Modal -->
+        <div id="gameMenu" class="modal" style="display: none;">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Game Menu</h2>
+                <div class="menu-options">
+                    <button id="saveGameBtn" class="btn btn-primary">Save Game</button>
+                    <button id="gameSettingsBtn" class="btn btn-secondary">Settings</button>
+                    <button id="returnToLobbyBtn" class="btn btn-warning">Return to Lobby</button>
+                    <button id="logoutBtn" class="btn btn-danger">Logout</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Help Modal -->
+        <div id="helpModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Game Help</h2>
+                <div class="help-content">
+                    <h3>Commands</h3>
+                    <ul>
+                        <li><strong>attack [target]</strong> - Attack an enemy</li>
+                        <li><strong>defend</strong> - Reduce incoming damage</li>
+                        <li><strong>move [direction/position]</strong> - Move to a new position</li>
+                        <li><strong>use [item]</strong> - Use an item from inventory</li>
+                        <li><strong>cast [ability]</strong> - Use a special ability</li>
+                    </ul>
+                    
+                    <h3>Combat</h3>
+                    <ul>
+                        <li>Combat uses D20 rolls + skill levels</li>
+                        <li>Rolling 20 = critical hit (double damage)</li>
+                        <li>Rolling 1 = critical failure</li>
+                        <li>Skills improve through use</li>
+                    </ul>
+                    
+                    <h3>Legend</h3>
+                    <ul>
+                        <li><strong>@</strong> = Your character</li>
+                        <li><strong>P</strong> = Party member</li>
+                        <li><strong>g</strong> = Goblin</li>
+                        <li><strong>$</strong> = Treasure</li>
+                        <li><strong>D</strong> = Door</li>
+                        <li><strong>#</strong> = Wall</li>
+                        <li><strong>.</strong> = Empty floor</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/airtable-client.js"></script>
+    <script src="js/game-engine.js"></script>
+    <script src="js/ui-renderer.js"></script>
+    <script src="js/llm-integration.js"></script>
+    <script>
+        let currentPlayer = null;
+        let selectedCharacter = null;
+        let gameState = null;
+        let tickTimer = null;
+
+        // Initialize game
+        document.addEventListener('DOMContentLoaded', initializeGame);
+        
+        // Event listeners
+        document.getElementById('commandForm').addEventListener('submit', handleCommand);
+        document.getElementById('menuBtn').addEventListener('click', showGameMenu);
+        document.getElementById('helpBtn').addEventListener('click', showHelpModal);
+        
+        // Quick action buttons
+        document.querySelectorAll('.quick-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const command = e.target.dataset.command;
+                document.getElementById('commandInput').value = command;
+                document.getElementById('commandInput').focus();
+            });
+        });
+        
+        // Ability buttons
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.ability')) {
+                const ability = e.target.closest('.ability').dataset.ability;
+                document.getElementById('commandInput').value = `use ${ability}`;
+                document.getElementById('commandInput').focus();
+            }
+        });
+        
+        // Modal handling
+        document.querySelectorAll('.modal .close').forEach(closeBtn => {
+            closeBtn.addEventListener('click', closeModals);
+        });
+        
+        window.addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal')) {
+                closeModals();
+            }
+        });
+
+        async function initializeGame() {
+            // Check authentication
+            const savedPlayer = localStorage.getItem('currentPlayer');
+            const savedCharacter = localStorage.getItem('selectedCharacter');
+            
+            if (!savedPlayer || !savedCharacter) {
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            currentPlayer = JSON.parse(savedPlayer);
+            selectedCharacter = JSON.parse(savedCharacter);
+            
+            // Initialize UI
+            UIRenderer.updateCharacterDisplay(selectedCharacter);
+            
+            // Load or create game instance
+            try {
+                gameState = await GameEngine.findOrCreateGame(selectedCharacter.character_id);
+                if (gameState) {
+                    await updateGameDisplay();
+                    startTickTimer();
+                } else {
+                    addLogEntry('Failed to initialize game. Please try again.', 'error');
+                }
+            } catch (error) {
+                console.error('Game initialization error:', error);
+                addLogEntry('Game initialization failed. Please refresh the page.', 'error');
+            }
+        }
+
+        async function handleCommand(e) {
+            e.preventDefault();
+            
+            const commandInput = document.getElementById('commandInput');
+            const command = commandInput.value.trim();
+            
+            if (!command) {
+                return;
+            }
+            
+            // Disable input while processing
+            commandInput.disabled = true;
+            document.getElementById('submitBtn').disabled = true;
+            
+            try {
+                // Submit command
+                const result = await GameEngine.submitCommand(
+                    gameState.instance_id, 
+                    selectedCharacter.character_id, 
+                    command
+                );
+                
+                if (result) {
+                    addLogEntry(`> ${command}`, 'player-command');
+                    commandInput.value = '';
+                    
+                    // Check if tick should process
+                    await checkTickStatus();
+                } else {
+                    addLogEntry('Command failed to submit. Please try again.', 'error');
+                }
+            } catch (error) {
+                console.error('Command submission error:', error);
+                addLogEntry('Command submission failed. Please try again.', 'error');
+            } finally {
+                // Re-enable input
+                commandInput.disabled = false;
+                document.getElementById('submitBtn').disabled = false;
+                commandInput.focus();
+            }
+        }
+
+        async function checkTickStatus() {
+            try {
+                const tickResult = await GameEngine.processTick(gameState.instance_id);
+                if (tickResult) {
+                    // Update game state
+                    gameState = tickResult.gameState;
+                    
+                    // Display results
+                    tickResult.results.forEach(result => {
+                        addLogEntry(result.narration, 'game-narration');
+                    });
+                    
+                    // Update UI
+                    await updateGameDisplay();
+                }
+            } catch (error) {
+                console.error('Tick processing error:', error);
+                addLogEntry('Game update failed. Please refresh the page.', 'error');
+            }
+        }
+
+        async function updateGameDisplay() {
+            if (!gameState) return;
+            
+            // Update dungeon info
+            document.getElementById('dungeonTitle').textContent = 
+                gameState.dungeon?.dungeon_name || 'Unknown Dungeon';
+            document.getElementById('roomProgress').textContent = 
+                `Room ${(gameState.current_room_index || 0) + 1} of ${gameState.dungeon?.room_sequence?.length || 5}`;
+            
+            // Update room display
+            const currentRoom = await GameEngine.getCurrentRoom(gameState.instance_id);
+            if (currentRoom) {
+                UIRenderer.displayRoom(currentRoom, gameState);
+            }
+            
+            // Update character stats
+            const updatedCharacter = await AirtableClient.getCharacter(selectedCharacter.character_id);
+            if (updatedCharacter) {
+                selectedCharacter = updatedCharacter;
+                UIRenderer.updateCharacterDisplay(selectedCharacter);
+            }
+        }
+
+        function startTickTimer() {
+            if (tickTimer) {
+                clearInterval(tickTimer);
+            }
+            
+            // For now, use a simple 60-second timer
+            let secondsLeft = 60;
+            
+            tickTimer = setInterval(() => {
+                secondsLeft--;
+                
+                const minutes = Math.floor(secondsLeft / 60);
+                const seconds = secondsLeft % 60;
+                const timeDisplay = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                
+                document.getElementById('tickTimer').textContent = `Next tick in: ${timeDisplay}`;
+                
+                if (secondsLeft <= 0) {
+                    // Process tick
+                    checkTickStatus();
+                    secondsLeft = 60; // Reset timer
+                }
+            }, 1000);
+        }
+
+        function addLogEntry(message, type = 'info') {
+            const logContent = document.getElementById('combatLogContent');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = message;
+            
+            logContent.appendChild(entry);
+            logContent.scrollTop = logContent.scrollHeight;
+            
+            // Keep only last 20 entries
+            while (logContent.children.length > 20) {
+                logContent.removeChild(logContent.firstChild);
+            }
+        }
+
+        function showGameMenu() {
+            document.getElementById('gameMenu').style.display = 'block';
+        }
+
+        function showHelpModal() {
+            document.getElementById('helpModal').style.display = 'block';
+        }
+
+        function closeModals() {
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.style.display = 'none';
+            });
+        }
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (tickTimer) {
+                clearInterval(tickTimer);
+            }
+        });
+    </script>
+</body>
+</html>

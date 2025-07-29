@@ -1,0 +1,56 @@
+{
+  "version": 2,
+  "name": "depths-of-ascension",
+  "builds": [
+    {
+      "src": "api/**/*.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
+    }
+  ],
+  "functions": {
+    "api/airtable-proxy.js": {
+      "maxDuration": 30
+    },
+    "api/llm-proxy.js": {
+      "maxDuration": 60
+    },
+    "api/game-tick.js": {
+      "maxDuration": 45
+    }
+  },
+  "env": {
+    "AIRTABLE_PAT": "@airtable_pat",
+    "AIRTABLE_BASE_ID": "@airtable_base_id",
+    "OPENAI_API_KEY": "@openai_api_key",
+    "ADMIN_PASSWORD": "@admin_password"
+  },
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization"
+        }
+      ]
+    }
+  ]
+}
